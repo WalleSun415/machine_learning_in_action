@@ -8,7 +8,7 @@ import operator
 
 def classify0(inX, dataSet, labels, k):
     dataSetSize = dataSet.shape[0]
-    diffMat = tile(inX, (dataSetSize, 1)) - dataSet # tile重复输入数据，格式为(dataSetSize, 1)
+    diffMat = tile(inX, (dataSetSize, 1)) - dataSet  # tile重复输入数据，格式为(dataSetSize, 1)
     sqDiffMat = diffMat ** 2
     sqDistance = sqDiffMat.sum(axis=1)
     distance = sqDistance ** 0.5
