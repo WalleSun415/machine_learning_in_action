@@ -117,10 +117,17 @@ def grabTree(filename):
 if __name__ == '__main__':
 
     import treePlotter
-    myDat, labels = createDataSet()
-    #chooseBestFeatureToSplit(myDat)
-    myTree = treePlotter.retrieveTree(0)
-    print(myTree)
-    print(labels)
-    print(classify(myTree, labels, [1, 0]))
+
+    # myDat, labels = createDataSet()
+    # myTree = treePlotter.retrieveTree(0)
+    # print(myTree)
+    # print(labels)
+    # print(classify(myTree, labels, [1, 0]))
+
+    fr = open('lenses.txt')
+    lenses = [inst.strip().split('\t') for inst in fr.readlines()]
+    lensesLabels = ['age', 'prescript', 'astigmatic', 'tearRate']
+    lensesTree = createTree(lenses, lensesLabels)
+    print(lensesTree)
+    treePlotter.createPlot(lensesTree)
 
