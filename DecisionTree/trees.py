@@ -26,7 +26,7 @@ def calcShannonEnt(dataSet):
     shannonEnt = 0.0
     for key in labelCounts:
         prob = float(labelCounts[key]) / numEntries
-        shannonEnt -= prob * log(prob, 2)
+        shannonEnt -= prob * log(prob, 2)  # ID3算法：利用信息增益进行特征选择
     return shannonEnt
 
 
@@ -88,9 +88,26 @@ def createTree(dataSet, labels):
     return myTree
 
 
+def classify(inputTree, featLabels, testVec):
+    firstStr = inputTree.keys()[0]
+    secondDict = inputTree[firstStr]
+    featIndex = featLabels.index(firstStr)
+    for key in secondDict.keys():
+        if testVec[featIndex] == key:
+            if type(secondDict[key]).__name__ == 'dict':
+                classLabel = classify(secondDict[key], featLabels, testVec)
+            else:
+                classLabel = secondDict[key]
+    return classLabel
+
+
 if __name__ == '__main__':
+
+    import treePlotter
     myDat, labels = createDataSet()
-    chooseBestFeatureToSplit(myDat)
-    myTree = createTree(myDat, labels)
+    #chooseBestFeatureToSplit(myDat)
+    myTree = treePlotter.retrieveTree(0)
     print(myTree)
+    print(labels)
+    print(classify(myTree, labels, [1, 0]))
 
