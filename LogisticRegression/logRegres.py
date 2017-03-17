@@ -52,3 +52,36 @@ def plotBestFit(weights):
     ax.plot(x, y)
     plt.xlabel(u'X轴'); plt.ylabel(u'Y轴')
     plt.show()
+
+
+def stocGradAscent0(dataMatrix, classLabels):
+    m, n = shape(dataMatrix)
+    alpha = 0.01
+    weights = ones(n)
+    for i in range(m):  # 随机梯度上升，按照样本数量m更新weights
+        h = sigmoid(sum(dataMatrix[i]*weights))
+        error = classLabels[i] - h
+        weights += alpha * error * dataMatrix[i]
+    return weights
+
+
+def stocGradAscent1(dataMatrix, classLabels, numIter=150):
+    m, n = shape(dataMatrix)
+    weights = ones(n)
+    for j in range(numIter):
+        dataIndex = range(m)  # 以dataIndex维护使用或未使用过的数据编号
+        for i in range(m):
+            alpha = 4 / (1.0+i+j) + 0.01
+            randIndex = int(random.uniform(0, len(dataIndex)))  # randIndex在未使用过的数据编号中随机取值
+            h = sigmoid(sum(dataMatrix[dataIndex[randIndex]]*weights))
+            error = classLabels[dataIndex[randIndex]] - h
+            weights += alpha * error * dataMatrix[dataIndex[randIndex]]
+            del(dataIndex[randIndex])
+    return weights
+
+
+if __name__ == '__main__':
+    dataArr, labelMat = loadDataSet()
+    weights = stocGradAscent1(array(dataArr), labelMat)
+    print(weights)
+    # plotBestFit(weights)
