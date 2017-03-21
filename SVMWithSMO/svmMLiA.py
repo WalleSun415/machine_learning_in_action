@@ -176,6 +176,15 @@ def smoP(dataMatIn, classLabels, C, toler, maxIter, kTup=('lin', 0)):
     return oS.b, oS.alphas
 
 
+def calcWs(alphas, dataArr, labelArr):
+    X = mat(dataArr); labelMat = mat(labelArr).transpose()
+    m, n = shape(X)
+    w = zeros((n, 1))
+    for i in range(m):
+        w += multiply(alphas[i] * labelMat[i], X[i, :].T)
+    return w
+
+
 if __name__ == '__main__':
     dataArr, labelArr = loadDataSet('testSet.txt')
     # print(dataArr)
@@ -184,3 +193,5 @@ if __name__ == '__main__':
     b, alphas = smoP(dataArr, labelArr, 0.6, 0.001, 40)
     # print(b)
     # print(alphas[alphas > 0])
+    ws = calcWs(alphas, dataArr, labelArr)
+    print(ws)
