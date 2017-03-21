@@ -151,7 +151,29 @@ def innerL(i, oS):
         return 0
 
 
-
+def smoP(dataMatIn, classLabels, C, toler, maxIter, kTup=('lin', 0)):
+    oS = optStruct(mat(dataMatIn), mat(classLabels).transpose(), C, toler)
+    iterNum = 0
+    entireSet = True; alphaPairsChanged = 0
+    while (iterNum < maxIter) and (alphaPairsChanged > 0 or entireSet):
+        alphaPairsChanged = 0
+        if entireSet:
+            for i in range(oS.m):
+                alphaPairsChanged += innerL(i, oS)
+                print("fullSet, iterNum: %d, i: %d, pairs changed %d" % (iterNum, i, alphaPairsChanged))
+            iterNum += 1
+        else:
+            nonBoundIs = nonzero((oS.alphas.A > 0) * (oS.alphas.A < C))[0]
+            for i in nonBoundIs:
+                alphaPairsChanged +=innerL(i, oS)
+                print("non-bound, iterNum: %d, i: %d, pairs changed %d" % (iterNum, i, alphaPairsChanged))
+            iterNum += 1
+        if entireSet:
+            entireSet = False
+        elif alphaPairsChanged == 0:
+            entireSet = True
+        print("iteration: %d" % iterNum)
+    return oS.b, oS.alphas
 
 
 if __name__ == '__main__':
