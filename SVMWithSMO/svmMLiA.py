@@ -185,6 +185,23 @@ def calcWs(alphas, dataArr, labelArr):
     return w
 
 
+def kernelTrans(X, A, kTup):
+    m, n = shape(X)
+    K = mat(zeros((m, 1)))
+    if kTup[0] == 'lin':
+        K = X * A.T
+    elif kTup[0] == 'rbf':
+        for j in range(m):
+            deltaRow = X[j, :] - A
+            K[j] = deltaRow * deltaRow.T
+        K = exp(-K / (kTup[1] ** 2))
+    else:
+        raise NameError("Houston We Have a Problem -- That Kernel is not recognized")
+    return K
+
+
+
+
 if __name__ == '__main__':
     dataArr, labelArr = loadDataSet('testSet.txt')
     # print(dataArr)
