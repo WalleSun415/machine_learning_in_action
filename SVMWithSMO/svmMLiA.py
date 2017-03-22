@@ -168,8 +168,24 @@ def innerL(i, oS):
         return 0
 
 
+# with kernel function
+class optStruct:
+    def __init__(self, dataMatIn, classLabels, C, toler, kTup):
+        self.X = dataMatIn
+        self.labelMat = classLabels
+        self.C = C
+        self.tol = toler
+        self.m = shape(dataMatIn)[0]
+        self.alphas = mat(zeros((self.m, 1)))
+        self.b = 0
+        self.eCache = mat(zeros((self.m, 2)))
+        self.K = mat(zeros((self.m, self.m)))
+        for i in range(self.m):
+            self.K[:, i] = kernelTrans(self.X, self.X[i, :], kTup)
+
+
 def smoP(dataMatIn, classLabels, C, toler, maxIter, kTup=('lin', 0)):
-    oS = optStruct(mat(dataMatIn), mat(classLabels).transpose(), C, toler)
+    oS = optStruct(mat(dataMatIn), mat(classLabels).transpose(), C, toler, kTup)
     iterNum = 0
     entireSet = True; alphaPairsChanged = 0
     while (iterNum < maxIter) and (alphaPairsChanged > 0 or entireSet):
@@ -217,29 +233,41 @@ def kernelTrans(X, A, kTup):
     return K
 
 
-# with kernel function
-class optStruct:
-    def __init__(self, dataMatIn, classLabels, C, toler, kTup):
-        self.X = dataMatIn
-        self.labelMat = classLabels
-        self.C = C
-        self.tol = toler
-        self.m = shape(dataMatIn)[0]
-        self.alphas = mat(zeros((self.m, 1)))
-        self.b = 0
-        self.eCache = mat(zeros((self.m, 2)))
-        self.K = mat(zeros((self.m, self.m)))
-        for i in range(self.m):
-            self.K[:, i] = kernelTrans(self.X, self.X[i, :], kTup)
+def testRbf(k1=1.3):
+    dataArr, labelArr = loadDataSet('testSetRBF.txt')
+    b, alphas = smoP(dataArr, labelArr, 200, 0.0001, 10000, ('rbf', k1))
+    datMat = mat(dataArr); labelMat = mat(labelArr).transpose()
+    svInd = nonzero(alphas.A > 0)[0]
+    sVs = datMat[svInd]
+    labelSV = labelMat[svInd]
+    print("there are %d Support Vectors" % shape(sVs)[0])
+    m, n = shape(datMat)
+    errorCount = 0
+    for i in range(m):
+        kernelEval = kernelTrans(sVs, datMat[i, :], ('rbf', k1))
+        predict = kernelEval.T * multiply(alphas[svInd], labelSV) + b
+        if sign(predict) != sign(labelArr[i]): errorCount += 1
+    print("the training error rate is: %f" % (float(errorCount) / m))
+    dataArr, labelArr = loadDataSet('testSetRBF2.txt')
+    datMat = mat(dataArr)
+    labelMat = mat(labelArr).transpose()
+    m, n = shape(datMat)
+    errorCount = 0
+    for i in range(m):
+        kernelEval = kernelTrans(sVs, datMat[i, :], ('rbf', k1))
+        predict = kernelEval.T * multiply(alphas[svInd], labelSV) + b
+        if sign(predict) != sign(labelArr[i]): errorCount += 1
+    print("the test error rate is: %f" % (float(errorCount) / m))
 
 
 if __name__ == '__main__':
-    dataArr, labelArr = loadDataSet('testSet.txt')
+    # dataArr, labelArr = loadDataSet('testSet.txt')
     # print(dataArr)
     # print(labelArr)
     # b, alphas = smoSimple(dataArr, labelArr, 0.6, 0.001, 40)
-    b, alphas = smoP(dataArr, labelArr, 0.6, 0.001, 40)
+    # b, alphas = smoP(dataArr, labelArr, 0.6, 0.001, 40)
     # print(b)
     # print(alphas[alphas > 0])
-    ws = calcWs(alphas, dataArr, labelArr)
-    print(ws)
+    # ws = calcWs(alphas, dataArr, labelArr)
+    # print(ws)
+    testRbf()
