@@ -76,21 +76,29 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
         print("iteration number: %d" % iterNum)
     return b, alphas
 
+# without kernel function
+# class optStruct:
+#     def __init__(self, dataMatIn, classLabels, C, toler):
+#         self.X = dataMatIn
+#         self.labelMat = classLabels
+#         self.C = C
+#         self.tol = toler
+#         self.m = shape(dataMatIn)[0]
+#         self.alphas = mat(zeros((self.m, 1)))
+#         self.b = 0
+#         self.eCache = mat(zeros((self.m, 2)))
 
-class optStruct:
-    def __init__(self, dataMatIn, classLabels, C, toler):
-        self.X = dataMatIn
-        self.labelMat = classLabels
-        self.C = C
-        self.tol = toler
-        self.m = shape(dataMatIn)[0]
-        self.alphas = mat(zeros((self.m, 1)))
-        self.b = 0
-        self.eCache = mat(zeros((self.m, 2)))
 
 
 def calcEk(oS, k):
-    fXk = float(multiply(oS.alphas, oS.labelMat).T * (oS.X * oS.X[k, :].T)) + oS.b
+    """
+    without kernel function
+    """
+    # fXk = float(multiply(oS.alphas, oS.labelMat).T * (oS.X * oS.X[k, :].T)) + oS.b
+    """
+    with kernel function
+    """
+    fXk = float(multiply(oS.alphas, oS.labelMat).T * oS.K[:, k]) + oS.b
     Ek = fXk - float(oS.labelMat[k])
     return Ek
 
@@ -130,7 +138,8 @@ def innerL(i, oS):
             L = max(0, oS.alphas[j] + oS.alphas[i] - oS.C)
             H = min(oS.C, oS.alphas[j] + oS.alphas[i])
         if L == H: print("L==H");return 0
-        eta = 2.0 * oS.X[i, :] * oS.X[j, :].T - oS.X[i, :] * oS.X[i, :].T - oS.X[j, :] * oS.X[j, :].T
+        # eta = 2.0 * oS.X[i, :] * oS.X[j, :].T - oS.X[i, :] * oS.X[i, :].T - oS.X[j, :] * oS.X[j, :].T  # without kernel functon
+        eta = 2.0 * oS.K[i, j] - oS.K[i, i] - oS.K[j, j]  # with kernel function
         if eta >= 0: print("eta>=0"); return 0
         oS.alphas[j] -= oS.labelMat[j] * (Ei - Ej) / eta
         oS.alphas[j] = clipAlpha(oS.alphas[j], H, L)
@@ -139,10 +148,18 @@ def innerL(i, oS):
             print("j not moving enough"); return 0
         oS.alphas[i] += oS.labelMat[i] * oS.labelMat[j] * (alphaJold - oS.alphas[j])
         updateEk(oS, i)
-        b1 = oS.b - Ei - oS.labelMat[i] * oS.X[i, :] * oS.X[i, :].T * (oS.alphas[i] - alphaIold) - \
-             oS.labelMat[j] * oS.X[j, :] * oS.X[i, :].T * (oS.alphas[j] - alphaJold)
-        b2 = oS.b - Ej - oS.labelMat[i] * oS.X[i, :] * oS.X[j, :].T * (oS.alphas[i] - alphaIold) - \
-             oS.labelMat[j] * oS.X[j, :] * oS.X[j, :].T * (oS.alphas[j] - alphaJold)
+
+        # without kernel function
+        # b1 = oS.b - Ei - oS.labelMat[i] * oS.X[i, :] * oS.X[i, :].T * (oS.alphas[i] - alphaIold) - \
+        #      oS.labelMat[j] * oS.X[j, :] * oS.X[i, :].T * (oS.alphas[j] - alphaJold)
+        # b2 = oS.b - Ej - oS.labelMat[i] * oS.X[i, :] * oS.X[j, :].T * (oS.alphas[i] - alphaIold) - \
+        #      oS.labelMat[j] * oS.X[j, :] * oS.X[j, :].T * (oS.alphas[j] - alphaJold)
+
+        # with kernel function
+        b1 = oS.b - Ei - oS.labelMat[i] * oS.K[i, i] * (oS.alphas[i] - alphaIold) - \
+             oS.labelMat[j] * oS.K[j, i] * (oS.alphas[j] - alphaJold)
+        b2 = oS.b - Ej - oS.labelMat[i] * oS.K[i, j] * (oS.alphas[i] - alphaIold) - \
+             oS.labelMat[j] * oS.K[j, j] * (oS.alphas[j] - alphaJold)
         if (oS.alphas[i] > 0) and (oS.alphas[i] < oS.C): oS.b = b1
         elif (oS.alphas[j] > 0) and (oS.alphas[j] < oS.C): oS.b = b2
         else: oS.b = (b1 + b2) / 2.0
@@ -200,6 +217,20 @@ def kernelTrans(X, A, kTup):
     return K
 
 
+# with kernel function
+class optStruct:
+    def __init__(self, dataMatIn, classLabels, C, toler, kTup):
+        self.X = dataMatIn
+        self.labelMat = classLabels
+        self.C = C
+        self.tol = toler
+        self.m = shape(dataMatIn)[0]
+        self.alphas = mat(zeros((self.m, 1)))
+        self.b = 0
+        self.eCache = mat(zeros((self.m, 2)))
+        self.K = mat(zeros((self.m, self.m)))
+        for i in range(self.m):
+            self.K[:, i] = kernelTrans(self.X, self.X[i, :], kTup)
 
 
 if __name__ == '__main__':
