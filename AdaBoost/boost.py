@@ -25,8 +25,8 @@ def buildStump(dataArr, classLabels, D):
                 predictedVals = stumpClassify(dataMatrix, i, threshVal, inequal)
                 errArr = mat(ones((m, 1)))
                 errArr[predictedVals == labelMat] = 0  # 判断正确的置为0，判断错误的置1
-                weightedError = D.T * errArr
-                print("split: dim %d, thresh %.2f, thresh inequal: %s, the weighted error is %.3f" % (i, threshVal, inequal, weightedError))
+                weightedError = D.T * errArr  # 求得犯错比例em
+                # print("split: dim %d, thresh %.2f, thresh inequal: %s, the weighted error is %.3f" % (i, threshVal, inequal, weightedError))
                 if weightedError < minError:
                     minError = weightedError
                     bestClasEst = predictedVals.copy()
@@ -40,4 +40,4 @@ if __name__ == '__main__':
     from adaboost import loadSimpData
     datMat, classLabels = loadSimpData()
     D = mat(ones((5, 1)) / 5)
-    buildStump(datMat, classLabels, D)
+    print(buildStump(datMat, classLabels, D))
