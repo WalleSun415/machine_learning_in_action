@@ -198,7 +198,7 @@ def smoP(dataMatIn, classLabels, C, toler, maxIter, kTup=('lin', 0)):
         else:
             nonBoundIs = nonzero((oS.alphas.A > 0) * (oS.alphas.A < C))[0]
             for i in nonBoundIs:
-                alphaPairsChanged +=innerL(i, oS)
+                alphaPairsChanged += innerL(i, oS)
                 print("non-bound, iterNum: %d, i: %d, pairs changed %d" % (iterNum, i, alphaPairsChanged))
             iterNum += 1
         if entireSet:
