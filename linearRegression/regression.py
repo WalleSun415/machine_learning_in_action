@@ -1,3 +1,4 @@
+# coding=utf-8
 from numpy import *
 
 
@@ -51,6 +52,31 @@ def lwlrTest(testArr, xArr, yArr, k=1.0):
 def rssError(yArr, yHatArr):
     return ((yArr-yHatArr) ** 2).sum()
 
+
+def ridgeRegres(xMat, yMat, lam=0.2):
+    xTx = xMat.T * xMat
+    denom = xTx + eye(shape(xMat)[1]) * lam
+    if linalg.det(denom) == 0:
+        print("This matrix is singular, cannot do inverse")
+    ws = denom.I * xMat.T * yMat
+    return ws
+
+
+def ridgeTest(xArr, yArr):
+    xMat = mat(xArr); yMat = mat(yArr).T
+    yMean = mean(yMat, 0)
+    yMat = yMat - yMean
+    xMeans = mean(xMat, 0)
+    xVar = var(xMat, 0)  # var函数求方差
+    xMat = (xMat - xMeans) / xVar
+    numTestPts = 30
+    wMat = zeros((numTestPts, shape(xMat)[1]))
+    for i in range(numTestPts):  # 在30个不同的lambda下求得不同的权值
+        ws = ridgeRegres(xMat, yMat, exp(i-10))
+        wMat[i, :] = ws.T
+    return wMat
+
+
 if __name__ == '__main__':
     # xArr, yArr = loadDataSet('ex0.txt')
     # ws = standRegres(xArr, yArr)
@@ -77,16 +103,24 @@ if __name__ == '__main__':
     # ax.scatter(xMat[:, 1].flatten().A[0], yMat.T.flatten().A[0], s=2, c='red')
     # plt.show()
 
+    # abX, abY = loadDataSet('abalone.txt')
+    # yHat01 = lwlrTest(abX[0: 99], abX[0: 99], abY[0: 99], 0.1)
+    # yHat1 = lwlrTest(abX[0: 99], abX[0: 99], abY[0: 99], 1)
+    # yHat10 = lwlrTest(abX[0: 99], abX[0: 99], abY[0: 99], 10)
+    # print(rssError(abY[0: 99], yHat01.T))
+    # print(rssError(abY[0: 99], yHat1.T))
+    # print(rssError(abY[0: 99], yHat10.T))
+    # yHat01 = lwlrTest(abX[100: 199], abX[0: 99], abY[0: 99], 0.1)
+    # yHat1 = lwlrTest(abX[100: 199], abX[0: 99], abY[0: 99], 1)
+    # yHat10 = lwlrTest(abX[100: 199], abX[0: 99], abY[0: 99], 10)
+    # print(rssError(abY[100: 199], yHat01.T))
+    # print(rssError(abY[100: 199], yHat1.T))
+    # print(rssError(abY[100: 199], yHat10.T))
+
     abX, abY = loadDataSet('abalone.txt')
-    yHat01 = lwlrTest(abX[0: 99], abX[0: 99], abY[0: 99], 0.1)
-    yHat1 = lwlrTest(abX[0: 99], abX[0: 99], abY[0: 99], 1)
-    yHat10 = lwlrTest(abX[0: 99], abX[0: 99], abY[0: 99], 10)
-    print(rssError(abY[0: 99], yHat01.T))
-    print(rssError(abY[0: 99], yHat1.T))
-    print(rssError(abY[0: 99], yHat10.T))
-    yHat01 = lwlrTest(abX[100: 199], abX[0: 99], abY[0: 99], 0.1)
-    yHat1 = lwlrTest(abX[100: 199], abX[0: 99], abY[0: 99], 1)
-    yHat10 = lwlrTest(abX[100: 199], abX[0: 99], abY[0: 99], 10)
-    print(rssError(abY[100: 199], yHat01.T))
-    print(rssError(abY[100: 199], yHat1.T))
-    print(rssError(abY[100: 199], yHat10.T))
+    ridgeWeights = ridgeTest(abX, abY)
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(ridgeWeights)
+    plt.show()
