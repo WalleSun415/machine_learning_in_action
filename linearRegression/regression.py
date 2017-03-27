@@ -77,6 +77,69 @@ def ridgeTest(xArr, yArr):
     return wMat
 
 
+def stageWise(xArr, yArr, eps=0.01, numIt=100):
+    xMat = mat(xArr); yMat = mat(yArr).T
+    yMean = mean(yMat, 0)
+    yMat = yMat - yMean
+    xMeans = mean(xMat, 0)
+    xVar = var(xMat, 0)
+    xMat = (xMat - xMeans) / xVar
+    m, n = shape(xMat)
+    returnMat = zeros((numIt, n))
+    ws = zeros((n, 1)); wsTest = ws.copy(); wsMax = ws.copy()
+    for i in range(numIt):
+        print ws.T
+        lowestError = inf
+        for j in range(n):
+            for sign in [-1, 1]:  # 分别计算增加或减少该特征对误差的影响
+                wsTest = ws.copy()
+                wsTest[j] += eps*sign
+                yTest = xMat*wsTest
+                rssE = rssError(yMat.A, yTest.A)
+                if rssE < lowestError:
+                    lowestError = rssE
+                    wsMax = wsTest
+        ws = wsMax.copy()
+        returnMat[i, :] = ws.T
+    return returnMat
+
+
+def crossvalidation(xArr, yArr, numVal=10):
+    m = len(yArr)
+    indexList = range(m)
+    errorMat = zeros((numVal, 30))
+    for i in range(numVal):
+        trainX = []; trainY = []
+        testX = []; testY = []
+        random.shuffle(indexList)
+        for j in range(m):
+            if j < m*0.9:
+                trainX.append(xArr[indexList[j]])
+                trainY.append(yArr[indexList[j]])
+            else:
+                testX.append(xArr[indexList[j]])
+                testY.append(yArr[indexList[j]])
+    wMat = ridgeTest(trainX, trainY)
+    for k in range(30):
+        matTestX = mat(testX); matTrainX = mat(trainX)
+        meanTrain = mean(matTrainX, 0)
+        varTrain = var(matTrainX, 0)
+        matTestX = (matTestX - meanTrain) / varTrain
+        yEst = matTestX * mat(wMat[k, :]).T + mean(trainY)
+        errorMat[i, k] = rssError(yEst.T.A, array(testY))
+    meanErrors = mean(errorMat, 0)
+    minMean = float(min(meanErrors))
+    bestWeights = wMat[nonzero(meanErrors == minMean)]
+    xMat = mat(xArr); yMat = mat(yArr).T
+    meanX = mean(xMat, 0); varX = var(xMat, 0)
+    unReg = bestWeights / varX
+    print("the best model from Ridge Regression is: \n", unReg)
+    print("with constant term: ", -1*sum(multiply(meanX, unReg)) + mean(yMat))
+    
+
+
+
+
 if __name__ == '__main__':
     # xArr, yArr = loadDataSet('ex0.txt')
     # ws = standRegres(xArr, yArr)
@@ -117,10 +180,13 @@ if __name__ == '__main__':
     # print(rssError(abY[100: 199], yHat1.T))
     # print(rssError(abY[100: 199], yHat10.T))
 
-    abX, abY = loadDataSet('abalone.txt')
-    ridgeWeights = ridgeTest(abX, abY)
-    import matplotlib.pyplot as plt
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.plot(ridgeWeights)
-    plt.show()
+    # abX, abY = loadDataSet('abalone.txt')
+    # ridgeWeights = ridgeTest(abX, abY)
+    # import matplotlib.pyplot as plt
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111)
+    # ax.plot(ridgeWeights)
+    # plt.show()
+
+    xArr, yArr = loadDataSet('abalone.txt')
+    stageWise(xArr, yArr, 0.001, 5000)
