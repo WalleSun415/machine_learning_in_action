@@ -48,13 +48,25 @@ def lwlrTest(testArr, xArr, yArr, k=1.0):
     return yHat
 
 
-def rssEror(yArr, yHatArr):
+def rssError(yArr, yHatArr):
     return ((yArr-yHatArr) ** 2).sum()
 
 if __name__ == '__main__':
     # xArr, yArr = loadDataSet('ex0.txt')
-    # yHat = lwlrTest(xArr, xArr, yArr, 0.03)
     # ws = standRegres(xArr, yArr)
+    # xMat = mat(xArr); yMat = mat(yArr)
+    # import matplotlib.pyplot as plt
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111)
+    # ax.scatter(xMat[:, 1].flatten().A[0], yMat.T[:, 0].flatten().A[0])
+    # xCopy = xMat.copy()
+    # xCopy.sort(0)
+    # yHat = xCopy*ws
+    # ax.plot(xCopy[:, 1], yHat)
+    # plt.show()
+
+    # xArr, yArr = loadDataSet('ex0.txt')
+    # yHat = lwlrTest(xArr, xArr, yArr, 0.03)
     # xMat = mat(xArr); yMat = mat(yArr)
     # srtInd = xMat[:, 1].argsort(0)
     # xSort = xMat[srtInd][:, 0, :]
@@ -63,9 +75,18 @@ if __name__ == '__main__':
     # ax = fig.add_subplot(111)
     # ax.plot(xSort[:, 1], yHat[srtInd])
     # ax.scatter(xMat[:, 1].flatten().A[0], yMat.T.flatten().A[0], s=2, c='red')
-    # xCopy = xMat.copy()
-    # ax.scatter(xMat[:, 1].flatten().A[0], yMat.T[:, 0].flatten().A[0])
-    # xCopy.sort(0)
-    # yHat = xCopy * ws
-    # ax.plot(xCopy[:, 1], yHat)
-    plt.show()
+    # plt.show()
+
+    abX, abY = loadDataSet('abalone.txt')
+    yHat01 = lwlrTest(abX[0: 99], abX[0: 99], abY[0: 99], 0.1)
+    yHat1 = lwlrTest(abX[0: 99], abX[0: 99], abY[0: 99], 1)
+    yHat10 = lwlrTest(abX[0: 99], abX[0: 99], abY[0: 99], 10)
+    print(rssError(abY[0: 99], yHat01.T))
+    print(rssError(abY[0: 99], yHat1.T))
+    print(rssError(abY[0: 99], yHat10.T))
+    yHat01 = lwlrTest(abX[100: 199], abX[0: 99], abY[0: 99], 0.1)
+    yHat1 = lwlrTest(abX[100: 199], abX[0: 99], abY[0: 99], 1)
+    yHat10 = lwlrTest(abX[100: 199], abX[0: 99], abY[0: 99], 10)
+    print(rssError(abY[100: 199], yHat01.T))
+    print(rssError(abY[100: 199], yHat1.T))
+    print(rssError(abY[100: 199], yHat10.T))
