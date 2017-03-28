@@ -7,28 +7,15 @@ def loadDataSet(fileName):
     fr = open(fileName)
     for line in fr.readlines():
         curLine = line.strip().split('\t')
-        fltLine = map(float, curLine)  ## 将每行内容映射为浮点数
+        fltLine = map(float, curLine)  ## 将每行内容转换为浮点数
         dataMat.append(fltLine)
     return dataMat
 
 
 def binSplitDataSet(dataSet, feature, value):  # 将数据集根据按照特征索引和特征值切分为两个子集
-    mat0 = dataSet[np.nonzero(dataSet[:, feature] > value)[0], :][0]
-    mat1 = dataSet[np.nonzero(dataSet[:, feature] <= value)[0], :][0]
+    mat0 = dataSet[np.nonzero(dataSet[:, feature] > value)[0], :]
+    mat1 = dataSet[np.nonzero(dataSet[:, feature] <= value)[0], :]
     return mat0, mat1
-
-
-def createTree(dataSet, leafType=regLeaf, errType=regErr, ops=(1, 4)):  # 递归构建回归树
-    feat, val = chooseBestSplit(dataSet, leafType, errType, ops)
-    if feat is None:  # 满足停止条件时，返回叶节点值
-        return val
-    retTree = {}
-    retTree['spInd'] = feat
-    retTree['spVal'] = val
-    lSet, rSet = binSplitDataSet(dataSet, feat, val)
-    retTree['left'] = createTree(lSet, leafType, errType, ops)
-    retTree['right'] = createTree(rSet, leafType, errType, ops)
-    return retTree
 
 
 def regLeaf(dataSet):
@@ -48,9 +35,9 @@ def chooseBestSplit(dataSet, leafType=regLeaf, errType=regErr, ops=(1, 4)):
     S = errType(dataSet)
     bestS = np.inf; bestIndex = 0; bestValue = 0
     for featIndex in range(n - 1):
-        for splitVal in set(dataSet[:, featIndex]):
+        for splitVal in set(dataSet[:, featIndex].T.tolist()[0]):
             mat0, mat1 = binSplitDataSet(dataSet, featIndex, splitVal)
-            if (np.shape(mat0)[0] < tolN) or (np.shape(mat1) < tolN): continue
+            if (np.shape(mat0)[0] < tolN) or (np.shape(mat1)[0] < tolN): continue
             newS = errType(mat0) + errType(mat1)
             if newS < bestS:
                 bestIndex = featIndex
@@ -62,3 +49,23 @@ def chooseBestSplit(dataSet, leafType=regLeaf, errType=regErr, ops=(1, 4)):
     if (np.shape(mat0)[0] < tolN) or (np.shape(mat1)[0] < tolN):
         return None, leafType(dataSet)
     return bestIndex, bestValue
+
+
+def createTree(dataSet, leafType=regLeaf, errType=regErr, ops=(1, 4)):  # 递归构建回归树
+    feat, val = chooseBestSplit(dataSet, leafType, errType, ops)
+    if feat is None:  # 满足停止条件时，返回叶节点值
+        return val
+    retTree = {}
+    retTree['spInd'] = feat
+    retTree['spVal'] = val
+    lSet, rSet = binSplitDataSet(dataSet, feat, val)
+    retTree['left'] = createTree(lSet, leafType, errType, ops)
+    retTree['right'] = createTree(rSet, leafType, errType, ops)
+    return retTree
+
+
+if __name__ == '__main__':
+    myDat = loadDataSet('ex00.txt')
+    # myDat = loadDataSet('ex0.txt')
+    myMat = np.mat(myDat)
+    print(createTree(myMat))
