@@ -123,6 +123,40 @@ def modelErr(dataSet):
     return sum(np.power(Y - yHat, 2))
 
 
+def regTreeEval(model, inDat):
+    return float(model)
+
+
+def modelTreeEval(model, inDat):
+    n = np.shape(inDat)[1]
+    X = np.mat(np.ones((1, n+1)))
+    X[:, 1: n+1] = inDat
+    return float(X * model)
+
+
+def treeForeCast(tree, inData, modelEval=regTreeEval):
+    if not isTree(tree):
+        return modelEval(tree, inData)
+    if inData[tree['spInd']] > tree['spVal']:
+        if isTree(tree['left']):
+            return treeForeCast(tree['left'], inData, modelEval)
+        else:
+            return modelEval(tree['left'], inData)
+    else:
+        if isTree(tree['right']):
+            return treeForeCast(tree['right'], inData, modelEval)
+        else:
+            return modelEval(tree['right'], inData)
+
+
+def createForeCast(tree, testData, modelEval=regTreeEval):
+    m = len(testData)
+    yHat = np.mat(np.zeros((m, 1)))
+    for i in range(m):
+        yHat[i, 0] = treeForeCast(tree, np.mat(testData[i]), modelEval)
+    return yHat
+
+
 if __name__ == '__main__':
     # myDat = loadDataSet('ex00.txt')
     # myDat = loadDataSet('ex0.txt')
@@ -136,5 +170,20 @@ if __name__ == '__main__':
     # myMat2Test = np.mat(myDatTest)
     # print(prune(myTree, myMat2Test))
 
-    myMat2 = np.mat(loadDataSet('exp2.txt'))
-    print(createTree(myMat2, modelLeaf, modelErr, (1, 10)))
+    # myMat2 = np.mat(loadDataSet('exp2.txt'))
+    # print(createTree(myMat2, modelLeaf, modelErr, (1, 10)))
+
+    trainMat = np.mat(loadDataSet('bikeSpeedVsIq_train.txt'))
+    testMat = np.mat(loadDataSet('bikeSpeedVsIq_test.txt'))
+    myTree = createTree(trainMat, ops=(1, 20))
+    yHat = createForeCast(myTree, testMat[:, 0])
+    print(np.corrcoef(yHat, testMat[:, 1], rowvar=0)[0, 1])
+
+    myTree = createTree(trainMat, modelLeaf, modelErr, ops=(1, 20))
+    yHat = createForeCast(myTree, testMat[:, 0], modelTreeEval)
+    print(np.corrcoef(yHat, testMat[:, 1], rowvar=0)[0, 1])
+
+    ws, X, Y = linearSolve(trainMat)
+    for i in range(np.shape(testMat)[0]):
+        yHat[i] = testMat[i, 0] * ws[1, 0] + ws[0, 0]
+    print(np.corrcoef(yHat, testMat[:, 1], rowvar=0))[0, 1]
