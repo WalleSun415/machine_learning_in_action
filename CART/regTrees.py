@@ -64,8 +64,52 @@ def createTree(dataSet, leafType=regLeaf, errType=regErr, ops=(1, 4)):  # 递归
     return retTree
 
 
+def isTree(obj):
+    return type(obj).__name__ == 'dict'
+
+
+def getMean(tree):
+    if isTree(tree['right']):
+        tree['right'] = getMean(tree['right'])
+    if isTree(tree['left']):
+        tree['left'] = getMean(tree['left'])
+    return (tree['left']+tree['right']) / 2.0
+
+
+def prune(tree, testData):
+    if np.shape(testData)[0] == 0:
+        return getMean(tree)
+    if isTree(tree['left']) or isTree(tree['right']):
+        lSet, rSet = binSplitDataSet(testData, tree['spInd'], tree['spVal'])
+    if isTree(tree['left']):
+        tree['left'] = prune(tree['left'], lSet)
+    if isTree(tree['right']):
+        tree['right'] = prune(tree['right'], rSet)
+    if not isTree(tree['left']) and not isTree(tree['right']):
+        lSet, rSet = binSplitDataSet(testData, tree['spInd'], tree['spVal'])
+        errorNoMerge = sum(np.power(lSet[:, -1] - tree['left'], 2)) + sum(np.power(rSet[:, -1] - tree['right'], 2))  # power()对不数值求不同次方
+        treeMean = (tree['left'] + tree['right']) / 2.0
+        errorMean = sum(np.power(testData[:, -1] - treeMean, 2))
+        if errorMean < errorNoMerge:
+            print("merging")
+            return treeMean
+        else:
+            return tree
+    else:
+        return tree
+
+
 if __name__ == '__main__':
-    myDat = loadDataSet('ex00.txt')
+    # myDat = loadDataSet('ex00.txt')
     # myDat = loadDataSet('ex0.txt')
-    myMat = np.mat(myDat)
-    print(createTree(myMat))
+    # myMat = np.mat(myDat)
+    # print(createTree(myMat))
+
+    myDat2 = loadDataSet('ex2.txt')
+    myMat2 = np.mat(myDat2)
+    myTree = createTree(myMat2, ops=(0, 1))
+    myDatTest = loadDataSet('ex2test.txt')
+    myMat2Test = np.mat(myDatTest)
+    print(prune(myTree, myMat2Test))
+
+
