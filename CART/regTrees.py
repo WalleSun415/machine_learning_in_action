@@ -99,17 +99,42 @@ def prune(tree, testData):
         return tree
 
 
+def linearSolve(dataSet):
+    m, n = np.shape(dataSet)
+    X = np.mat(np.ones((m, n)))
+    Y = np.mat(np.ones((m, 1)))
+    X[:, 1: n] = dataSet[:, 0: n-1]
+    Y = dataSet[:, -1]
+    xTx = X.T * X
+    if np.linalg.det(xTx) == 0.0:
+        raise NameError("This matrix is singular, cannot do inverse, try increasing the second value of ops")
+    ws = xTx.I * X.T * Y
+    return ws, X, Y
+
+
+def modelLeaf(dataSet):
+    ws, X, Y = linearSolve(dataSet)
+    return ws
+
+
+def modelErr(dataSet):
+    ws, X, Y = linearSolve(dataSet)
+    yHat = X * ws
+    return sum(np.power(Y - yHat, 2))
+
+
 if __name__ == '__main__':
     # myDat = loadDataSet('ex00.txt')
     # myDat = loadDataSet('ex0.txt')
     # myMat = np.mat(myDat)
     # print(createTree(myMat))
 
-    myDat2 = loadDataSet('ex2.txt')
-    myMat2 = np.mat(myDat2)
-    myTree = createTree(myMat2, ops=(0, 1))
-    myDatTest = loadDataSet('ex2test.txt')
-    myMat2Test = np.mat(myDatTest)
-    print(prune(myTree, myMat2Test))
+    # myDat2 = loadDataSet('ex2.txt')
+    # myMat2 = np.mat(myDat2)
+    # myTree = createTree(myMat2, ops=(0, 1))
+    # myDatTest = loadDataSet('ex2test.txt')
+    # myMat2Test = np.mat(myDatTest)
+    # print(prune(myTree, myMat2Test))
 
-
+    myMat2 = np.mat(loadDataSet('exp2.txt'))
+    print(createTree(myMat2, modelLeaf, modelErr, (1, 10)))
