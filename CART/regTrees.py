@@ -173,17 +173,21 @@ if __name__ == '__main__':
     # myMat2 = np.mat(loadDataSet('exp2.txt'))
     # print(createTree(myMat2, modelLeaf, modelErr, (1, 10)))
 
-    trainMat = np.mat(loadDataSet('bikeSpeedVsIq_train.txt'))
-    testMat = np.mat(loadDataSet('bikeSpeedVsIq_test.txt'))
-    myTree = createTree(trainMat, ops=(1, 20))
-    yHat = createForeCast(myTree, testMat[:, 0])
-    print(np.corrcoef(yHat, testMat[:, 1], rowvar=0)[0, 1])
+    # trainMat = np.mat(loadDataSet('bikeSpeedVsIq_train.txt'))
+    # testMat = np.mat(loadDataSet('bikeSpeedVsIq_test.txt'))
+    # myTree = createTree(trainMat, ops=(1, 20))
+    # yHat = createForeCast(myTree, testMat[:, 0])
+    # print(np.corrcoef(yHat, testMat[:, 1], rowvar=0)[0, 1])
+    #
+    # myTree = createTree(trainMat, modelLeaf, modelErr, ops=(1, 20))
+    # yHat = createForeCast(myTree, testMat[:, 0], modelTreeEval)
+    # print(np.corrcoef(yHat, testMat[:, 1], rowvar=0)[0, 1])
+    #
+    # ws, X, Y = linearSolve(trainMat)
+    # for i in range(np.shape(testMat)[0]):
+    #     yHat[i] = testMat[i, 0] * ws[1, 0] + ws[0, 0]
+    # print(np.corrcoef(yHat, testMat[:, 1], rowvar=0))[0, 1]
 
-    myTree = createTree(trainMat, modelLeaf, modelErr, ops=(1, 20))
-    yHat = createForeCast(myTree, testMat[:, 0], modelTreeEval)
-    print(np.corrcoef(yHat, testMat[:, 1], rowvar=0)[0, 1])
-
-    ws, X, Y = linearSolve(trainMat)
-    for i in range(np.shape(testMat)[0]):
-        yHat[i] = testMat[i, 0] * ws[1, 0] + ws[0, 0]
-    print(np.corrcoef(yHat, testMat[:, 1], rowvar=0))[0, 1]
+    from Tkinter import *
+    root = Tk()
+    print(root)
