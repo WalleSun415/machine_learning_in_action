@@ -95,6 +95,36 @@ def svdEst(dataMat, user, simMeas, item):
         return ratSimTotal / simTotal
 
 
+def printMat(inMat, thresh=0.8):
+    for i in range(32):
+        for k in range(32):
+            if float(inMat[i, k]) > thresh:
+                inMat[i, k] = 1
+            else:
+                inMat[i, k] = 0
+    return inMat
+
+
+def imgCompress(numSV=3, thresh=0.8):
+    myl = []
+    for line in open('0_5.txt').readlines():
+        newRow = []
+        for i in range(32):
+            newRow.append(int(line[i]))
+        myl.append(newRow)
+    myMat = np.mat(myl)
+    print("**************original matrix*************")
+    print(printMat(myMat, thresh))
+    U, Sigma, VT = la.svd(myMat)
+    SigRecon = np.mat(np.zeros((numSV, numSV)))
+    for k in range(numSV):
+        SigRecon[k, k] = Sigma[k]
+    reconMat = U[:, :numSV] * SigRecon * VT[:numSV, :]
+    print("***************reconstructed matrix using %d singular value***************" % numSV)
+    print(printMat(reconMat, thresh))
+    print(thresh, Sigma)
+
+
 if __name__ == '__main__':
     # Data = loadExData()
     # U, Sigma, VT = np.linalg.svd(Data)
@@ -106,6 +136,8 @@ if __name__ == '__main__':
     # print(myMat)
     # print(recommend(myMat, 2))
 
-    myMat = np.mat(loadExData2())
-    print(myMat)
-    print(recommend(myMat, 1, estMethod=svdEst, simMeas=pearsSim))
+    # myMat = np.mat(loadExData2())
+    # print(myMat)
+    # print(recommend(myMat, 1, estMethod=svdEst, simMeas=pearsSim))
+
+    imgCompress(2)
