@@ -34,12 +34,13 @@ def eulidSim(inA, inB):
 def pearsSim(inA, inB):
     if len(inA) < 3:
         return 1.0
+    return 0.5 + 0.5 * np.corrcoef(inA, inB, rowvar=0)[0][1]
 
 
 def cosSim(inA, inB):
     num = float(inA.T * inB)
     denom = la.norm(inA) * la.norm(inB)
-    return 0.5+0.5 * (num / denom)
+    return 0.5 + 0.5 * (num / denom)
 
 
 def standEst(dataMat, user, simMeas, item):
@@ -63,7 +64,7 @@ def standEst(dataMat, user, simMeas, item):
         return ratSimTotal / simTotal
 
 
-def recommand(dataMat, user, N=3, simMeas=cosSim, estMethod=standEst):
+def recommend(dataMat, user, N=3, simMeas=cosSim, estMethod=standEst):
     unratedItems = np.nonzero(dataMat[user, :].A == 0)[1]
     if len(unratedItems) == 0:
         return "you rated everything"
@@ -74,13 +75,37 @@ def recommand(dataMat, user, N=3, simMeas=cosSim, estMethod=standEst):
     return sorted(itemScores, key=lambda jj: jj[1], reverse=True)[: N]
 
 
+def svdEst(dataMat, user, simMeas, item):
+    n = np.shape(dataMat)[1]
+    simTotal = 0.0; ratSimTotal = 0.0
+    U, Sigma, VT = la.svd(dataMat)
+    Sig4 = np.mat(np.eye(4) * Sigma[:4])
+    xformedItems = dataMat.T * U[:, :4] * Sig4.I
+    for j in range(n):
+        userRating = dataMat[user, j]
+        if userRating == 0 or j == item:
+            continue
+        similarity = simMeas(xformedItems[item, :].T, xformedItems[j, :].T)
+        print ("the %d and %d similarity is: %f" % (item, j, similarity))
+        simTotal += similarity
+        ratSimTotal += similarity * userRating
+    if simTotal == 0:
+        return 0
+    else:
+        return ratSimTotal / simTotal
+
+
 if __name__ == '__main__':
     # Data = loadExData()
     # U, Sigma, VT = np.linalg.svd(Data)
     # print(Sigma)
 
-    myMat = np.mat(loadExData())
-    myMat[0, 1] = myMat[0, 0] = myMat[1, 0] = myMat[2, 0] = 4
-    myMat[3, 3] = 2
+    # myMat = np.mat(loadExData())
+    # myMat[0, 1] = myMat[0, 0] = myMat[1, 0] = myMat[2, 0] = 4
+    # myMat[3, 3] = 2
+    # print(myMat)
+    # print(recommend(myMat, 2))
+
+    myMat = np.mat(loadExData2())
     print(myMat)
-    print(recommand(myMat, 2))
+    print(recommend(myMat, 1, estMethod=svdEst, simMeas=pearsSim))
